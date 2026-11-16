@@ -84,3 +84,9 @@ The Doubao compatibility design is informed by MiRemoteVoice: a side-by-side Bla
 ## RC001 and RC003 product photos
 
 The RC003 product photo bundled as `RC003-remote-photo.png` was supplied by the user on 2026-07-17 for the physical-button mapping interface. The RC001 product photo bundled as `RC001-remote-photo.png` was supplied by the user for the same interface. Both files keep their 1024 x 1536 pixel dimensions; the bundled copies use palette compression only. Copyright and trademark rights in the photos and depicted products remain with their respective owners; the GPL-3.0-only license for the program does not grant additional rights to these images or the Xiaomi marks.
+
+## OBS Studio and Mac Mic Mixer
+
+Microphone Mixing reuses the C/C++ audio bridge, HAL output, audio ring buffer and control behavior from the user-provided Mac Mic Mixer project under GPL-3.0. Its OBS baseline is 33.0.1, commit `65c320b46e1af5c7a555161aea6182cdf7a8c524`, from <https://github.com/obsproject/obs-studio>. OBS is licensed under GPL-2.0-or-later and is used here under GPL v3 terms. The pinned OBS source and its corresponding dependency notices are prepared by `scripts/build-microphone-mixer.py`.
+
+The integrated capture wrapper adds an explicit capture-stop operation. The bridge accepts the current SayAll virtual output and waits for queued mixed audio before normal teardown. The mixed-audio gain, mono fold and duplicated stereo output follow the original project. OBS and dependency license texts are included under `Contents/Resources/MicrophoneMixer/` in packaged builds. The existing BlackHole-derived SayAll driver supplies the virtual microphone.

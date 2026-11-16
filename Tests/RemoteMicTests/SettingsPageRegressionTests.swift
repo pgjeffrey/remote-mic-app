@@ -2283,6 +2283,7 @@ struct SettingsPageRegressionTests {
             membershipVisible: true
         ) == [
             .mapping,
+            .audioMixing,
             .applications,
             .macros,
             .buttonProfiles,
@@ -2424,6 +2425,7 @@ struct SettingsPageRegressionTests {
             ".transcripts",
             ".connection",
             ".keyboard",
+            ".audioMixing",
             ".about",
         ] {
             #expect(sections.contains(section))

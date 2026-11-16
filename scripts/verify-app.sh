@@ -530,6 +530,17 @@ if [[ "$REQUIRE_SAYALL_PRIVATE_ARTIFACT_PACKAGE" == "1" && \
   exit 1
 fi
 
+test -f "$APP/Contents/Frameworks/libSayAllMicrophoneMixer.dylib"
+test -f "$APP/Contents/Frameworks/MixerMacInput.so"
+test -f "$APP/Contents/Frameworks/libobs.framework/libobs"
+test -f "$APP/Contents/Frameworks/libobs-metal.dylib"
+test -f "$APP/Contents/Resources/MicrophoneMixer/OBS-COPYING.txt"
+for mixer_binary in "$APP/Contents/Frameworks/libSayAllMicrophoneMixer.dylib" \
+    "$APP/Contents/Frameworks/MixerMacInput.so" \
+    "$APP/Contents/Frameworks/libobs.framework/libobs"; do
+  codesign --verify --strict "$mixer_binary"
+  lipo -archs "$mixer_binary" | rg -qw "$RELEASE_ARCH"
+done
 codesign --verify --deep --strict "$APP"
 codesign --verify --strict "$MCP_HELPER"
 if [[ "$SAYALL_SIRI_REMOTE_INCLUDED" == "true" ]]; then

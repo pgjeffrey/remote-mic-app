@@ -246,6 +246,12 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
     private var statusMenu: NSMenu?
     private var statusMenuOperationID: UInt = 0
     private var activeStatusMenuOperation: (id: UInt, startedAt: TimeInterval, menu: NSMenu)?
+    private var terminatingMixer = false
+    private lazy var mixerModel = MicrophoneMixerModel(
+        outputUID: { [weak self] in self?.model.settings.selectedAudioDeviceUID ?? "" },
+        singleMicrophoneActive: { [weak self] in self?.model.macMicrophoneEnabled ?? false },
+        armedChanged: { [weak self] in self?.model.microphoneMixerEnabled = $0 }
+    )
     private var settingsWindowController: NSWindowController?
     private var isSettingsWindowOpen = false
     private var subscriptions = Set<AnyCancellable>()
@@ -312,6 +318,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         model.macroFeature.refreshAccessIfNeeded()
         model.membershipFeature.refreshIfNeeded()
         model.keyboardFn.start()
+        _ = mixerModel
         if OnboardingLaunchPolicy.shouldStartRuntime(
             isComplete: model.settings.isOnboardingComplete,
             step: model.settings.onboardingStep
@@ -372,14 +379,28 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        model.keyboardFn.prepareForTermination { [weak self] restored in
-            if !restored, let self {
+        if terminatingMixer { return .terminateLater }
+        terminatingMixer = true
+        var keyboardRestored: Bool?
+        var mixerStopped = false
+        func replyIfReady() {
+            guard let keyboardRestored, mixerStopped else { return }
+            terminatingMixer = false
+            if !keyboardRestored {
                 let alert = NSAlert()
-                alert.messageText = self.localization.text("keyboard_fn.quit.title")
-                alert.informativeText = self.localization.text("keyboard_fn.quit.detail")
+                alert.messageText = localization.text("keyboard_fn.quit.title")
+                alert.informativeText = localization.text("keyboard_fn.quit.detail")
                 alert.runModal()
             }
-            sender.reply(toApplicationShouldTerminate: restored)
+            sender.reply(toApplicationShouldTerminate: keyboardRestored)
+        }
+        model.keyboardFn.prepareForTermination { restored in
+            keyboardRestored = restored
+            replyIfReady()
+        }
+        mixerModel.shutdown {
+            mixerStopped = true
+            replyIfReady()
         }
         return .terminateLater
     }
@@ -503,7 +524,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
             // 纯状态查询：打开「编辑」菜单本身不得产生聚焦副作用。
             return searchFocusCoordinator.hasRegisteredSearchField
         }
-        return menuItem !== macMicrophoneItem || model.macMicrophoneState != .stopping
+        return menuItem !== macMicrophoneItem || (model.macMicrophoneState != .stopping && !model.microphoneMixerEnabled)
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
@@ -1110,7 +1131,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         }
         macMicrophoneItem.toolTip = localization.text("audio.mac_microphone.help")
         macMicrophoneItem.state = model.macMicrophoneEnabled ? .on : .off
-        macMicrophoneItem.isEnabled = model.macMicrophoneState != .stopping
+        macMicrophoneItem.isEnabled = model.macMicrophoneState != .stopping && !model.microphoneMixerEnabled
         macMicrophoneItem.isHidden = !model.macMicrophoneSelectedDeviceIsReady
     }
 
@@ -1218,6 +1239,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         let hostingController = NSHostingController(
             rootView: RemoteMicRootView(
                 model: model,
+                microphoneMixer: mixerModel,
                 buttonProfileImportRequests: buttonProfileImportRequests,
                 settingsNavigation: settingsNavigation,
                 updateInformation: updateInformation,
