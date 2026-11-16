@@ -457,6 +457,28 @@ struct SettingsPageRegressionTests {
         #expect(source.contains("about.version.release_notes_title"))
     }
 
+    @Test func keyboardFnMappingHasItsOwnSidebarRouteBelowConnection() throws {
+        let sections = SettingsPageBehavior.sidebarSections(
+            privateFeatureVisible: false,
+            macroFeatureVisible: false,
+            buttonProfilesVisible: false,
+            membershipVisible: false
+        )
+        let connectionIndex = try #require(sections.firstIndex(of: .connection))
+        #expect(sections[connectionIndex + 1] == .keyboard)
+
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("Sources/RemoteMic/SettingsView.swift"),
+            encoding: .utf8
+        )
+        #expect(source.contains("case .keyboard:"))
+        #expect(source.contains("KeyboardFnSettingsView(controller: model.keyboardFn)"))
+    }
+
     @Test func applicationEditMenuPreservesStandardTextEditingShortcuts() throws {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -2266,6 +2288,7 @@ struct SettingsPageRegressionTests {
             .buttonProfiles,
             .membership,
             .connection,
+            .keyboard,
             .transcripts,
             .privateFeature,
             .about,
@@ -2400,6 +2423,7 @@ struct SettingsPageRegressionTests {
             ".statistics",
             ".transcripts",
             ".connection",
+            ".keyboard",
             ".about",
         ] {
             #expect(sections.contains(section))

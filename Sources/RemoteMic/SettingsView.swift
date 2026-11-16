@@ -18,6 +18,7 @@ struct SettingsSection: RawRepresentable, Hashable, CaseIterable, Identifiable {
     let rawValue: String
     init(rawValue: String) { self.rawValue = rawValue }
     static let connection = SettingsSection(rawValue: "connection")
+    static let keyboard = SettingsSection(rawValue: "keyboard")
     static let privateFeature = SettingsSection(rawValue: "privateFeature")
     static let macros = SettingsSection(rawValue: "macros")
     static let buttonProfiles = SettingsSection(rawValue: "buttonProfiles")
@@ -30,7 +31,7 @@ struct SettingsSection: RawRepresentable, Hashable, CaseIterable, Identifiable {
     static let commonPhrases = SettingsSection(rawValue: "commonPhrases")
     static let permissions = SettingsSection(rawValue: "permissions")
     static let about = SettingsSection(rawValue: "about")
-    static let allCases: [SettingsSection] = [.connection, .privateFeature, .macros, .buttonProfiles, .membership, .mapping, .applications, .statistics, .transcripts, .commonPhrases, .permissions, .about]
+    static let allCases: [SettingsSection] = [.connection, .keyboard, .privateFeature, .macros, .buttonProfiles, .membership, .mapping, .applications, .statistics, .transcripts, .commonPhrases, .permissions, .about]
     static func supplemental(_ id: String) -> SettingsSection { SettingsSection(rawValue: "supplemental:" + id) }
     var supplementalID: String? { rawValue.hasPrefix("supplemental:") ? String(rawValue.dropFirst(13)) : nil }
     var id: String { rawValue }
@@ -38,6 +39,7 @@ struct SettingsSection: RawRepresentable, Hashable, CaseIterable, Identifiable {
     var titleKey: String {
         switch self {
         case .connection: return "settings.section.connection"
+        case .keyboard: return "settings.section.keyboard_fn_mapping"
         case .privateFeature: return ""
         case .macros: return ""
         case .buttonProfiles: return ""
@@ -60,6 +62,7 @@ struct SettingsSection: RawRepresentable, Hashable, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .connection: return "link"
+        case .keyboard: return "keyboard"
         case .privateFeature: return "sparkles"
         case .macros: return "command.square"
         case .buttonProfiles: return "rectangle.3.group"
@@ -206,6 +209,7 @@ enum SettingsPageBehavior {
         .buttonProfiles,
         .membership,
         .connection,
+        .keyboard,
         .transcripts,
         .privateFeature,
         .about,
@@ -1106,6 +1110,8 @@ struct SettingsView: View {
         switch SettingsPageBehavior.visibleSection(for: selectedSection) {
         case .connection:
             connectionPage
+        case .keyboard:
+            KeyboardFnSettingsView(controller: model.keyboardFn)
         case .privateFeature:
             if privateFeature.isFeatureVisible {
                 privateFeature.settingsView()
