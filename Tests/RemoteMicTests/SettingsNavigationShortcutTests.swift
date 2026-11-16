@@ -37,10 +37,26 @@ struct SettingsNavigationShortcutTests {
 
     @Test func dynamicAndContextualPagesHaveNoShortcut() {
         let order = SettingsPageBehavior.sidebarShortcutOrder
+        #expect(!order.contains(.audioMixing))
         #expect(!order.contains(.privateFeature))
         #expect(!order.contains(.commonPhrases))
         #expect(!order.contains(.permissions))
         #expect(!order.contains(.supplemental("any")))
+    }
+
+    @Test func audioMixingFollowsButtonsInEverySidebarConfiguration() {
+        for privateFeaturesVisible in [false, true] {
+            let sections = SettingsPageBehavior.sidebarSections(
+                privateFeatureVisible: privateFeaturesVisible,
+                macroFeatureVisible: privateFeaturesVisible,
+                buttonProfilesVisible: privateFeaturesVisible,
+                membershipVisible: privateFeaturesVisible,
+                supplementalPageIDs: ["extra"]
+            )
+            #expect(Array(sections.prefix(3)) == [.mapping, .audioMixing, .applications])
+        }
+        #expect(SettingsSection.audioMixing.titleKey == "mixer.title")
+        #expect(SettingsSection.audioMixing.systemImage == "waveform")
     }
 
     @Test func shortcutOrderHasNoDuplicates() {

@@ -246,7 +246,6 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
     private var statusMenu: NSMenu?
     private var statusMenuOperationID: UInt = 0
     private var activeStatusMenuOperation: (id: UInt, startedAt: TimeInterval, menu: NSMenu)?
-    private var mixerWindowController: NSWindowController?
     private var terminatingMixer = false
     private lazy var mixerModel = MicrophoneMixerModel(
         outputUID: { [weak self] in self?.model.settings.selectedAudioDeviceUID ?? "" },
@@ -649,7 +648,6 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         macMicrophoneItem.target = self
         macMicrophoneItem.action = #selector(toggleMacMicrophone)
         menu.addItem(macMicrophoneItem)
-        menu.addItem(menuItem("mixer.title", action: #selector(showMicrophoneMixer)))
         menu.addItem(menuItem("connection.action.reconnect", action: #selector(reconnect)))
         menu.addItem(menuItem("menu.show_logs", action: #selector(showLog)))
         menu.addItem(languageMenuItem())
@@ -752,8 +750,6 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
 
         let windowMenuItem = NSMenuItem()
         let windowMenu = NSMenu(title: localization.text("menu.window"))
-        windowMenu.addItem(menuItem("mixer.title", action: #selector(showMicrophoneMixer)))
-        windowMenu.addItem(.separator())
         windowMenu.addItem(responderMenuItem(
             "common.action.minimize",
             action: "performMiniaturize:",
@@ -1214,37 +1210,13 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         window.makeKeyAndOrderFront(nil)
     }
 
-    @objc private func showMicrophoneMixer() {
-        if mixerWindowController == nil {
-            let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 640, height: 500),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable],
-                backing: .buffered, defer: false
-            )
-            window.title = localization.text("mixer.title")
-            window.contentViewController = NSHostingController(
-                rootView: MicrophoneMixerView(model: mixerModel).environmentObject(localization)
-            )
-            window.contentMinSize = NSSize(width: 640, height: 460)
-            window.contentMaxSize = NSSize(width: 640, height: CGFloat.greatestFiniteMagnitude)
-            window.isReleasedWhenClosed = false
-            window.setFrameAutosaveName("SayAllMicrophoneMixer")
-            window.center()
-            mixerWindowController = NSWindowController(window: window)
-        }
-        mixerWindowController?.window?.title = localization.text("mixer.title")
-        mixerWindowController?.showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
-        mixerWindowController?.window?.makeKeyAndOrderFront(nil)
-        AppLogger.shared.write("MICROPHONE MIXER WINDOW phase=completed result=visible")
-    }
-
     private func makeSettingsWindowController(
         initialSettingsSection: SettingsSection? = nil
     ) -> NSWindowController {
         let hostingController = NSHostingController(
             rootView: RemoteMicRootView(
                 model: model,
+                microphoneMixer: mixerModel,
                 buttonProfileImportRequests: buttonProfileImportRequests,
                 settingsNavigation: settingsNavigation,
                 updateInformation: updateInformation,

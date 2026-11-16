@@ -1547,7 +1547,7 @@
 "button_mapping.profile.created.detail" = "已切换到新方案";
 
 /* Microphone Mixing */
-"mixer.title" = "麦克风混合";
+"mixer.title" = "音频混合";
 "mixer.add" = "添加输入";
 "mixer.remove" = "移除此输入";
 "mixer.select" = "选择麦克风";
@@ -1589,4 +1589,4 @@
 "mixer.input.standby" = "待命";
 "mixer.state.output_missing" = "输出设备不可用";
 "mixer.state.waiting" = "等待所选麦克风收音";
-"mixer.close_help" = "关闭窗口后继续按需混音，停止请点击“停止混音”。";
+"mixer.close_help" = "切换页面或关闭主窗口后继续按需混音，停止请点击“停止混音”。";

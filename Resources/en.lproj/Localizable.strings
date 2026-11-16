@@ -1548,7 +1548,7 @@
 "button_mapping.profile.created.detail" = "Switched to the new profile";
 
 /* Microphone Mixing */
-"mixer.title" = "Microphone Mixing";
+"mixer.title" = "Audio Mixing";
 "mixer.add" = "Add Input";
 "mixer.remove" = "Remove Input";
 "mixer.select" = "Choose Microphone";
@@ -1590,4 +1590,4 @@
 "mixer.input.standby" = "Standby";
 "mixer.state.output_missing" = "Output Device Unavailable";
 "mixer.state.waiting" = "Waiting for Microphone Audio";
-"mixer.close_help" = "Mixing stays on when this window closes. Use Stop Mixing to stop.";
+"mixer.close_help" = "Mixing stays on when you switch pages or close the main window. Use Stop Mixing to stop.";

@@ -8,7 +8,7 @@ struct MicrophoneMixerView: View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(localization.text("mixer.title")).font(.system(size: 20, weight: .semibold))
+                    Text(localization.text("mixer.title")).font(.system(size: 24, weight: .semibold))
                     Text(localization.text(model.stateKey))
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                         .accessibilityIdentifier("mixer.state")
@@ -20,7 +20,8 @@ struct MicrophoneMixerView: View {
                 .disabled(model.armed || model.busy)
                 .accessibilityIdentifier("mixer.add")
             }
-            .padding(20)
+            .padding(.horizontal, 22)
+            .padding(.vertical, 8)
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
@@ -106,7 +107,7 @@ struct MicrophoneMixerView: View {
             .background(Color(nsColor: .windowBackgroundColor))
         }
         .background(Color(nsColor: .underPageBackgroundColor))
-        .frame(minWidth: 640, maxWidth: 640, minHeight: 460)
+        .frame(minWidth: 640, maxWidth: .infinity, minHeight: 460, maxHeight: .infinity)
         .environment(\.locale, localization.locale)
     }
 

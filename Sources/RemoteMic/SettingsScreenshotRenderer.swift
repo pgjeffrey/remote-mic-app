@@ -31,6 +31,7 @@ enum SettingsScreenshotRenderer {
 
     private static let sections: [SettingsSection] = [
         .mapping,
+        .audioMixing,
         .applications,
         .commonPhrases,
         .macros,
@@ -372,6 +373,13 @@ enum SettingsScreenshotRenderer {
 
         _ = NSApplication.shared
         AppIconController().apply(settings.appIconIdentifier, source: "screenshot")
+        let microphoneMixer = MicrophoneMixerModel(
+            defaults: defaults,
+            outputUID: { settings.selectedAudioDeviceUID },
+            singleMicrophoneActive: { model.macMicrophoneEnabled },
+            armedChanged: { model.microphoneMixerEnabled = $0 }
+        )
+
         let previousAppearance = NSApp.appearance
         NSApp.appearance = appearance
         defer { NSApp.appearance = previousAppearance }
@@ -386,6 +394,7 @@ enum SettingsScreenshotRenderer {
             let section = sections.first { $0.rawValue == onlySection } ?? onlySection.map { SettingsSection(rawValue: $0) } ?? .mapping
             let controller = NSHostingController(rootView: SettingsView(
                 model: model,
+                microphoneMixer: microphoneMixer,
                 updateInformation: updateInformation,
                 initialSection: section,
                 initialShareSection: section == .statistics && expandsShare ? section : nil,
@@ -427,6 +436,7 @@ enum SettingsScreenshotRenderer {
         for section in sections where onlySection == nil || onlySection == section.rawValue {
             let rootView = SettingsView(
                 model: model,
+                microphoneMixer: microphoneMixer,
                 updateInformation: updateInformation,
                 initialSection: section,
                 initialShareSection: section == .statistics && expandsShare ? section : nil,

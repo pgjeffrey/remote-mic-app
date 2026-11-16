@@ -2261,6 +2261,7 @@ struct SettingsPageRegressionTests {
             membershipVisible: true
         ) == [
             .mapping,
+            .audioMixing,
             .applications,
             .macros,
             .buttonProfiles,
