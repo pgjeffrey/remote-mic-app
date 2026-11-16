@@ -246,6 +246,13 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
     private var statusMenu: NSMenu?
     private var statusMenuOperationID: UInt = 0
     private var activeStatusMenuOperation: (id: UInt, startedAt: TimeInterval, menu: NSMenu)?
+    private var mixerWindowController: NSWindowController?
+    private var terminatingMixer = false
+    private lazy var mixerModel = MicrophoneMixerModel(
+        outputUID: { [weak self] in self?.model.settings.selectedAudioDeviceUID ?? "" },
+        singleMicrophoneActive: { [weak self] in self?.model.macMicrophoneEnabled ?? false },
+        armedChanged: { [weak self] in self?.model.microphoneMixerEnabled = $0 }
+    )
     private var settingsWindowController: NSWindowController?
     private var isSettingsWindowOpen = false
     private var subscriptions = Set<AnyCancellable>()
@@ -311,6 +318,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         model.privateFeature.refreshAccessIfNeeded()
         model.macroFeature.refreshAccessIfNeeded()
         model.membershipFeature.refreshIfNeeded()
+        _ = mixerModel
         if OnboardingLaunchPolicy.shouldStartRuntime(
             isComplete: model.settings.isOnboardingComplete,
             step: model.settings.onboardingStep
@@ -368,6 +376,13 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
                 // 弹窗只是挡住刚打开的窗口。主窗口与权限修复照旧自动呈现。
             }
         }
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if terminatingMixer { return .terminateLater }
+        terminatingMixer = true
+        mixerModel.shutdown { sender.reply(toApplicationShouldTerminate: true) }
+        return .terminateLater
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -487,7 +502,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
             // 纯状态查询：打开「编辑」菜单本身不得产生聚焦副作用。
             return searchFocusCoordinator.hasRegisteredSearchField
         }
-        return menuItem !== macMicrophoneItem || model.macMicrophoneState != .stopping
+        return menuItem !== macMicrophoneItem || (model.macMicrophoneState != .stopping && !model.microphoneMixerEnabled)
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
@@ -634,6 +649,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         macMicrophoneItem.target = self
         macMicrophoneItem.action = #selector(toggleMacMicrophone)
         menu.addItem(macMicrophoneItem)
+        menu.addItem(menuItem("mixer.title", action: #selector(showMicrophoneMixer)))
         menu.addItem(menuItem("connection.action.reconnect", action: #selector(reconnect)))
         menu.addItem(menuItem("menu.show_logs", action: #selector(showLog)))
         menu.addItem(languageMenuItem())
@@ -736,6 +752,8 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
 
         let windowMenuItem = NSMenuItem()
         let windowMenu = NSMenu(title: localization.text("menu.window"))
+        windowMenu.addItem(menuItem("mixer.title", action: #selector(showMicrophoneMixer)))
+        windowMenu.addItem(.separator())
         windowMenu.addItem(responderMenuItem(
             "common.action.minimize",
             action: "performMiniaturize:",
@@ -1094,7 +1112,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         }
         macMicrophoneItem.toolTip = localization.text("audio.mac_microphone.help")
         macMicrophoneItem.state = model.macMicrophoneEnabled ? .on : .off
-        macMicrophoneItem.isEnabled = model.macMicrophoneState != .stopping
+        macMicrophoneItem.isEnabled = model.macMicrophoneState != .stopping && !model.microphoneMixerEnabled
         macMicrophoneItem.isHidden = !model.macMicrophoneSelectedDeviceIsReady
     }
 
@@ -1194,6 +1212,31 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         windowController.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    @objc private func showMicrophoneMixer() {
+        if mixerWindowController == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 640, height: 500),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                backing: .buffered, defer: false
+            )
+            window.title = localization.text("mixer.title")
+            window.contentViewController = NSHostingController(
+                rootView: MicrophoneMixerView(model: mixerModel).environmentObject(localization)
+            )
+            window.contentMinSize = NSSize(width: 640, height: 460)
+            window.contentMaxSize = NSSize(width: 640, height: CGFloat.greatestFiniteMagnitude)
+            window.isReleasedWhenClosed = false
+            window.setFrameAutosaveName("SayAllMicrophoneMixer")
+            window.center()
+            mixerWindowController = NSWindowController(window: window)
+        }
+        mixerWindowController?.window?.title = localization.text("mixer.title")
+        mixerWindowController?.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        mixerWindowController?.window?.makeKeyAndOrderFront(nil)
+        AppLogger.shared.write("MICROPHONE MIXER WINDOW phase=completed result=visible")
     }
 
     private func makeSettingsWindowController(

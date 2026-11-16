@@ -612,6 +612,7 @@ final class BridgeAppModel: NSObject, ObservableObject, XiaomiBluetoothBridgeDel
     @Published private(set) var macMicrophoneDevices: [AudioDeviceInfo] = []
     @Published private(set) var macMicrophoneState: MacMicrophoneSessionState = .idle
     @Published private(set) var macMicrophoneShortcutAvailable = true
+    @Published var microphoneMixerEnabled = false
     @Published private(set) var macMicrophoneEnabled = false
     private let macMicrophoneVoiceKeyMonitor = MacMicrophoneVoiceKeyMonitor()
     private var macMicrophoneMonitoredMode: VoiceKeyMode?
@@ -3007,6 +3008,10 @@ final class BridgeAppModel: NSObject, ObservableObject, XiaomiBluetoothBridgeDel
     }
 
     func toggleMacMicrophone(from entry: MacMicrophoneEntry) {
+        guard !microphoneMixerEnabled else {
+            AppLogger.shared.write("MAC MICROPHONE phase=rejected reason=microphone_mixer_active")
+            return
+        }
         if !macMicrophoneSession.isEnabled {
             guard macMicrophoneSelectedDeviceIsReady else {
                 AppLogger.shared.write("MAC MICROPHONE phase=rejected reason=input_unavailable")

@@ -1895,6 +1895,7 @@ struct SettingsView: View {
                             .foregroundStyle(model.macMicrophoneEnabled ? Color.red : Color.primary)
                     }
                     .compatibilityButtonStyle(.standard)
+                    .disabled(model.microphoneMixerEnabled)
                     .accessibilityHint(Text("audio.mac_microphone.help"))
                     .onHover { isHoveringMacMicrophoneButton = $0 }
                     .overlay(alignment: .bottom) {

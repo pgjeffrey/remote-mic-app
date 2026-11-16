@@ -951,6 +951,9 @@ if [[ "$SAYALL_BUTTON_PROFILES_INCLUDED" == "true" &&
     "$SAYALL_COMMON_PHRASES_RESOURCE_BUNDLE" \
     "$APP_DIR/Contents/Resources/SayAllCommonPhrases_SayAllCommonPhrases.bundle"
 fi
+run_release_stage app-microphone-mixer 1200 \
+  python3 "$ROOT/scripts/build-microphone-mixer.py" \
+    --app "$APP_DIR" --arch "$RELEASE_ARCH" --minimum "$RELEASE_MIN_SYSTEM_VERSION"
 run_release_stage app-sanitize-paths 60 \
   python3 "$ROOT/scripts/sanitize-release-paths.py" "$APP_DIR"
 SPARKLE_VERSION_DIR="$APP_DIR/Contents/Frameworks/Sparkle.framework/Versions/B"

@@ -31,6 +31,7 @@
   - [`feature/mapping-scope-separation/PRODUCT_SPEC.md`](feature/mapping-scope-separation/PRODUCT_SPEC.md)
   - [`feature/common-phrases/PRODUCT_SPEC.md`](feature/common-phrases/PRODUCT_SPEC.md)
   - [`feature/mac-microphone-input/PRODUCT_SPEC.md`](feature/mac-microphone-input/PRODUCT_SPEC.md)
+  - [`feature/microphone-mixing/PRODUCT_SPEC.md`](feature/microphone-mixing/PRODUCT_SPEC.md)
   - [`feature/first-run-onboarding/PRODUCT_SPEC.md`](feature/first-run-onboarding/PRODUCT_SPEC.md)
   - [`feature/scroll-region-page-actions/PRODUCT_SPEC.md`](feature/scroll-region-page-actions/PRODUCT_SPEC.md)
   - [`feature/remote-connection-lifecycle/PRODUCT_SPEC.md`](feature/remote-connection-lifecycle/PRODUCT_SPEC.md)
