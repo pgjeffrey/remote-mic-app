@@ -311,6 +311,7 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
         model.privateFeature.refreshAccessIfNeeded()
         model.macroFeature.refreshAccessIfNeeded()
         model.membershipFeature.refreshIfNeeded()
+        model.keyboardFn.start()
         if OnboardingLaunchPolicy.shouldStartRuntime(
             isComplete: model.settings.isOnboardingComplete,
             step: model.settings.onboardingStep
@@ -368,6 +369,19 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
                 // 弹窗只是挡住刚打开的窗口。主窗口与权限修复照旧自动呈现。
             }
         }
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        model.keyboardFn.prepareForTermination { [weak self] restored in
+            if !restored, let self {
+                let alert = NSAlert()
+                alert.messageText = self.localization.text("keyboard_fn.quit.title")
+                alert.informativeText = self.localization.text("keyboard_fn.quit.detail")
+                alert.runModal()
+            }
+            sender.reply(toApplicationShouldTerminate: restored)
+        }
+        return .terminateLater
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -447,7 +461,9 @@ private final class RemoteMicAppDelegate: NSObject, NSApplicationDelegate, NSMen
                 queue: .main
             )
             source.setEventHandler {
-                NSApp.terminate(nil)
+                RunLoop.main.perform(inModes: [.common]) {
+                    NSApp.terminate(nil)
+                }
             }
             source.resume()
             terminationSignalSources.append(source)
