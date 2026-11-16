@@ -2,9 +2,9 @@
 
 ## 适用范围与准备
 
-适用于 `codex/microphone-mixing`，产品行为见 [产品规范](../feature/microphone-mixing/PRODUCT_SPEC.md)。使用统一本地打包入口生成的 SayAll，准备已安装的现有虚拟麦克风，以及两台真实输入设备和一个接收应用。
+适用于 `codex/microphone-mixing`，产品行为见 [产品规范](../feature/microphone-mixing/PRODUCT_SPEC.md)。当前本机候选为 2.0.4（Build 188），产品提交 `a50e4ae31145a4619950ec9cf4530e048f01d003`，安装路径为 `~/Applications/SayAll.app`。使用统一本地打包入口生成的 SayAll，准备已安装的现有虚拟麦克风，以及两台真实输入设备和一个接收应用。
 
-本机复用源项目缓存时，可显式设置 `SAYALL_MIXER_OBS_SOURCE_PATH` 和 `SAYALL_MIXER_OBS_BUILD_PATH` 指向固定 OBS 33.0.1 的源码及对应架构构建目录。普通公开构建由 `scripts/build-microphone-mixer.py` 获取固定公开源码并构建。该永久入口负责 SwiftPM 不能直接承载的 libobs 原生构建、资源、依赖闭包与嵌套签名，原生打包入口调用它。
+本机复用源项目缓存时，可显式设置 `SAYALL_MIXER_OBS_SOURCE_PATH` 和 `SAYALL_MIXER_OBS_BUILD_PATH` 指向固定 OBS 33.0.1 的源码及对应架构构建目录。普通公开构建由 `scripts/build-microphone-mixer.py` 获取固定公开源码并构建。冷构建需要 CMake 3.28+ 和固定 OBS 要求的 Xcode／macOS SDK 26.5+。该永久入口负责 SwiftPM 不能直接承载的 libobs 原生构建、资源、依赖闭包与嵌套签名，原生打包入口调用它。
 
 ## 菜单与设置
 
@@ -66,6 +66,6 @@
 - 实际内置麦克风按外部读取启用，12 秒接收取得 576000 帧。最后一个读取者结束后正常排空，`completion=normal`、`interrupted_samples=0`，恢复待命。
 - 实际双输入链路使用内置麦克风和 BlackHole 测试输入，混合到已有 MiRemoteV 2ch。合成信号在正常、独立静音及恢复阶段的幅度约为 0.02616、0.00138、0.02628，符合原 70% 输入、75% 混合音量的处理。测试只保留统计值。
 - 用户在本次聊天中确认，已使用日常两支麦克风及目标语音软件完成测试，结果均正常。该项记为用户实测证据。
-- 生产窗口完成中英文、浅深色的最小尺寸截图。截图原件保存在用户 Downloads 的本功能证据目录，公开 PR 仍需补充可访问的持久链接。
+- 生产窗口完成中英文、浅深色的最小尺寸截图。截图原件保存在用户 Downloads 的本功能证据目录，尺寸及 SHA-256 见 [证据索引](../Screenshots/microphone-mixing-20261116/manifest.json)，公开 PR 仍需补充可访问的持久链接。最终复核确认待命状态的设备名称可读，关闭窗口持续混音的说明完整显示。
 
 真实遥控器首尾字专项、权限异常、Intel 实机完整混音、休眠恢复和 60 分钟稳定性尚未完成专门验收。

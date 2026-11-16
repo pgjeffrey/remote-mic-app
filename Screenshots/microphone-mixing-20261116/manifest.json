@@ -1,0 +1,47 @@
+{
+  "batch": "microphone-mixing-20261116",
+  "date": "2026-11-16",
+  "purpose": "Production Microphone Mixing window, localized minimum-size standby states",
+  "source_commit": "a50e4ae31145a4619950ec9cf4530e048f01d003",
+  "app_version": "2.0.4",
+  "app_build": "188",
+  "window_content_size": {
+    "width": 640,
+    "height": 460
+  },
+  "storage": "Local original bytes in ~/Downloads/SayAll-microphone-mixing-20261116; public evidence URL pending",
+  "images": [
+    {
+      "file": "zh-Hans-light.png",
+      "format": "PNG",
+      "width": 1504,
+      "height": 1200,
+      "sha256": "dfeef65a1956cfc1da996158e4d5f9ee3a5e63338c6c4c719ba02914d1da357c",
+      "external_url": null
+    },
+    {
+      "file": "zh-Hans-dark.png",
+      "format": "PNG",
+      "width": 1504,
+      "height": 1200,
+      "sha256": "f0e97f5c674e4dfafc598bddee2f3f23e0068e9f69883885d2c36d6febccbf75",
+      "external_url": null
+    },
+    {
+      "file": "en-light.png",
+      "format": "PNG",
+      "width": 1504,
+      "height": 1200,
+      "sha256": "090564eb959a857827344259e1aa99c15e7136a11cfcbab3194f15d49d68a297",
+      "external_url": null
+    },
+    {
+      "file": "en-dark.png",
+      "format": "PNG",
+      "width": 1504,
+      "height": 1200,
+      "sha256": "0e55c7c0078698134cd2ddc5798b689d037c410fa992a0b1e3bb03024c8eb21d",
+      "external_url": null
+    }
+  ]
+}
