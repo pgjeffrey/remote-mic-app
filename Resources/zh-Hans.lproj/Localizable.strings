@@ -1553,7 +1553,7 @@
 "mixer.select" = "选择麦克风";
 "mixer.start" = "开始混音";
 "mixer.stop" = "停止混音";
-"mixer.restore" = "启动 SayAll 后恢复混音待命";
+"mixer.restore" = "启动时开启";
 "mixer.output" = "输出到现有虚拟麦克风";
 "mixer.output.none" = "尚未选择";
 "mixer.master" = "混合音量";
@@ -1589,4 +1589,4 @@
 "mixer.input.standby" = "待命";
 "mixer.state.output_missing" = "输出设备不可用";
 "mixer.state.waiting" = "等待所选麦克风收音";
-"mixer.close_help" = "切换页面或关闭主窗口后继续按需混音，停止请点击“停止混音”。";
+"mixer.close_help" = "切换页面或关闭主窗口后继续按需混音，关闭“开始混音”即可停止。";

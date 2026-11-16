@@ -1554,7 +1554,7 @@
 "mixer.select" = "Choose Microphone";
 "mixer.start" = "Start Mixing";
 "mixer.stop" = "Stop Mixing";
-"mixer.restore" = "Resume mixing standby when SayAll starts";
+"mixer.restore" = "Enable at Startup";
 "mixer.output" = "Output to Current Virtual Microphone";
 "mixer.output.none" = "None Selected";
 "mixer.master" = "Mix Volume";
@@ -1590,4 +1590,4 @@
 "mixer.input.standby" = "Standby";
 "mixer.state.output_missing" = "Output Device Unavailable";
 "mixer.state.waiting" = "Waiting for Microphone Audio";
-"mixer.close_help" = "Mixing stays on when you switch pages or close the main window. Use Stop Mixing to stop.";
+"mixer.close_help" = "Mixing stays on when you switch pages or close the main window. Switch off Start Mixing to stop.";
