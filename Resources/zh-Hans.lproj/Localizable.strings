@@ -1548,8 +1548,9 @@
 
 "settings.section.keyboard_fn_mapping" = "键盘 FN 映射";
 "keyboard_fn.title" = "键盘按键";
-"keyboard_fn.subtitle" = "为每把外接键盘设置一个 Fn／地球键。";
-"keyboard_fn.disable_all" = "全部停用";
+"keyboard_fn.subtitle" = "把每把没有 Fn／🌍 键的外接键盘设置一个 Fn／🌍 键。默认：右 Ctrl";
+"keyboard_fn.all" = "全部键盘";
+"keyboard_fn.enable" = "启用此键盘";
 "keyboard_fn.devices" = "我的键盘";
 "keyboard_fn.devices.help" = "可同时启用多把键盘。点选只切换编辑对象。";
 "keyboard_fn.refresh" = "重新检测键盘";
@@ -1571,7 +1572,7 @@
 "keyboard_fn.permission" = "请在系统设置中开启无线麦 SayAll 的输入监控权限，然后退出重开。";
 "keyboard_fn.status.disabled" = "未启用";
 "keyboard_fn.status.enabled" = "已启用";
-"keyboard_fn.status.offline" = "未连接 · 保留设置";
+"keyboard_fn.status.offline" = "未连接";
 "keyboard_fn.status.confirmation" = "需要确认键盘";
 "keyboard_fn.status.waiting" = "正在应用或恢复 · 请松开按键";
 "keyboard_fn.status.unavailable" = "需要输入监控权限";
@@ -1585,7 +1586,7 @@
 "keyboard_fn.error.conflict" = "映射已被其他工具更改。请确认后重新保存。";
 "keyboard_fn.error.busy" = "键盘正在使用中。请结束其他改键或录制操作后重试。";
 "keyboard_fn.record.prompt" = "请在选中的键盘上按下并松开一个来源键。15 秒内有效。";
-"keyboard_fn.record.completed" = "来源键已录入。点击“保存并启用”后生效。";
+"keyboard_fn.record.completed" = "来源键已录入，已自动保存并启用。";
 "keyboard_fn.identify.prompt" = "请在要识别的键盘上按下并松开左 Shift。15 秒内有效。";
 "keyboard_fn.identify.completed" = "已确认这把键盘。";
 "keyboard_fn.capture.timeout" = "等待按键已超时，请重新开始。";

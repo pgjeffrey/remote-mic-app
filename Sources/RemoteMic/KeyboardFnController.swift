@@ -67,6 +67,12 @@ final class KeyboardFnController: ObservableObject {
     private var sourceDownTimes: [UInt64: (time: UInt64, operation: Int)] = [:]
     private var loadingFailed = false
 
+    var hasProfiles: Bool { !configuration.profiles.isEmpty }
+
+    var allEnabled: Bool {
+        !configuration.profiles.isEmpty && configuration.profiles.allSatisfy(\.enabled)
+    }
+
     init(hardware: KeyboardFnHardware = KeyboardFnHID(), store: KeyboardFnStoring = KeyboardFnStore(),
          logger: @escaping (String) -> Void = { AppLogger.shared.write($0) }) {
         self.hardware = hardware
@@ -286,6 +292,38 @@ final class KeyboardFnController: ObservableObject {
             logOperation("disable_all", phase: "requested", result: "restore_pending")
             refresh()
         } catch { issue = .storage }
+    }
+
+    func setAllEnabled(_ enabled: Bool) {
+        if enabled {
+            guard !loadingFailed else { issue = .storage; return }
+            cancelCapture(reason: "enabled_all")
+            var updated = configuration
+            updated.profiles = updated.profiles.map { profile in
+                var profile = profile
+                profile.enabled = true
+                return profile
+            }
+            do {
+                try commit(updated)
+                failures.removeAll()
+                blockedRestores.removeAll()
+                issue = nil
+                logOperation("enable_all", phase: "requested", result: "apply_pending")
+                refresh()
+            } catch { issue = .storage }
+        } else {
+            disableAll()
+        }
+    }
+
+    func setEnabled(rowID: String, enabled: Bool) {
+        guard let row = rows.first(where: { $0.id == rowID }) else { return }
+        if enabled {
+            save(rowID: rowID, name: row.name, source: row.source, enable: true)
+        } else {
+            disable(rowID: rowID)
+        }
     }
 
     private func reconcile() {

@@ -134,6 +134,27 @@ struct KeyboardFnTests {
         controller.stop()
     }
 
+    @Test func allEnabledToggleAppliesToEverySavedProfile() async throws {
+        let hardware = KeyboardFnTestHardware(), store = KeyboardFnTestStore()
+        hardware.connected = [first, second]
+        store.value.profiles = [profile(first), profile(second)]
+        let controller = KeyboardFnController(hardware: hardware, store: store, logger: { _ in })
+        controller.start()
+        try await settle()
+        #expect(controller.allEnabled)
+
+        controller.setAllEnabled(false)
+        try await settle()
+        #expect(store.value.profiles.allSatisfy { !$0.enabled })
+        #expect(!controller.allEnabled)
+
+        controller.setAllEnabled(true)
+        try await settle()
+        #expect(store.value.profiles.allSatisfy { $0.enabled })
+        #expect(controller.allEnabled)
+        controller.stop()
+    }
+
     @Test func changingSourceWaitsForKeyUpAndRestoresBeforeNewMapping() async throws {
         let hardware = KeyboardFnTestHardware(), store = KeyboardFnTestStore()
         hardware.connected = [first]

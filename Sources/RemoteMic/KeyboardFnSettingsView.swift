@@ -7,6 +7,7 @@ struct KeyboardFnSettingsView: View {
     @State private var selectedID: String?
     @State private var draftName = ""
     @State private var draftSource = KeyboardFnKey.rightControl
+    @State private var isApplyingDraft = false
 
     private var selected: KeyboardFnRow? { controller.rows.first { $0.id == selectedID } }
 
@@ -20,8 +21,12 @@ struct KeyboardFnSettingsView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 16)
-                Button("keyboard_fn.disable_all") { controller.disableAll() }
-                    .disabled(!controller.rows.contains { $0.enabled || $0.status == .enabled || $0.status == .waiting })
+                Toggle("keyboard_fn.all", isOn: Binding(
+                    get: { controller.allEnabled },
+                    set: { controller.setAllEnabled($0) }
+                ))
+                .toggleStyle(.switch)
+                .disabled(!controller.hasProfiles)
             }
             if !controller.permissionGranted {
                 HStack(spacing: 12) {
@@ -63,7 +68,13 @@ struct KeyboardFnSettingsView: View {
         .onAppear { selectFirstIfNeeded() }
         .onChange(of: controller.rows.map(\.id)) { _, _ in selectFirstIfNeeded() }
         .onChange(of: controller.capturedKey) { _, key in
-            if let key { draftSource = key }
+            guard let key, let row = selected else { return }
+            draftSource = key
+            saveDraft(rowID: row.id, source: key)
+        }
+        .onChange(of: draftName) { _, _ in
+            guard !isApplyingDraft, let row = selected else { return }
+            saveDraft(rowID: row.id)
         }
         .onDisappear { controller.cancelCapture(reason: "left_keyboard_page") }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in
@@ -140,6 +151,14 @@ struct KeyboardFnSettingsView: View {
                 Button("keyboard_fn.record") { controller.beginRecording(rowID: row.id) }
                     .disabled(row.device == nil || controller.captureRowID != nil || !controller.permissionGranted)
             }
+            if row.profile != nil {
+                Toggle("keyboard_fn.enable", isOn: Binding(
+                    get: { row.enabled },
+                    set: { controller.setEnabled(rowID: row.id, enabled: $0) }
+                ))
+                .toggleStyle(.switch)
+                .disabled(controller.captureRowID != nil)
+            }
             Divider()
             VStack(alignment: .leading, spacing: 10) {
                 Button("keyboard_fn.identify") { controller.identify(rowID: row.id) }
@@ -157,24 +176,6 @@ struct KeyboardFnSettingsView: View {
                 }
                 .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.accentColor.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
-            }
-            HStack(spacing: 12) {
-                Button("keyboard_fn.save_enable") {
-                    controller.save(rowID: row.id, name: draftName, source: draftSource)
-                    // A newly saved device now has a durable profile ID.
-                    if let device = row.device,
-                       let saved = controller.rows.first(where: { $0.profile != nil && $0.device?.serviceID == device.serviceID }) {
-                        selectedID = saved.id
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(controller.captureRowID != nil || !controller.permissionGranted)
-                Button("keyboard_fn.cancel") { controller.cancelCapture(); loadDraft(row) }
-                    .disabled(controller.captureRowID != nil)
-            }
-            if row.profile != nil {
-                Button("keyboard_fn.disable") { controller.disable(rowID: row.id) }
-                    .disabled(controller.captureRowID != nil)
             }
             Text("keyboard_fn.footer").font(.system(size: 12)).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -205,8 +206,22 @@ struct KeyboardFnSettingsView: View {
     }
 
     private func loadDraft(_ row: KeyboardFnRow) {
+        isApplyingDraft = true
         draftName = row.name
         draftSource = row.source
+        DispatchQueue.main.async { isApplyingDraft = false }
+    }
+
+    private func saveDraft(rowID: String, source: KeyboardFnKey? = nil) {
+        guard controller.captureRowID == nil else { return }
+        let source = source ?? draftSource
+        let prior = controller.rows.first(where: { $0.id == rowID })
+        controller.save(rowID: rowID, name: draftName, source: source)
+        guard prior?.profile == nil, let serviceID = prior?.device?.serviceID,
+              let saved = controller.rows.first(where: {
+                  $0.profile != nil && $0.device?.serviceID == serviceID
+              }) else { return }
+        selectedID = saved.id
     }
 
     private func selectFirstIfNeeded() {

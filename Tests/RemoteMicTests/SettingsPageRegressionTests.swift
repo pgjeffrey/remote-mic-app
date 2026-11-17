@@ -477,6 +477,15 @@ struct SettingsPageRegressionTests {
         )
         #expect(source.contains("case .keyboard:"))
         #expect(source.contains("KeyboardFnSettingsView(controller: model.keyboardFn)"))
+
+        let keyboardSource = try String(
+            contentsOf: root.appendingPathComponent("Sources/RemoteMic/KeyboardFnSettingsView.swift"),
+            encoding: .utf8
+        )
+        #expect(keyboardSource.contains("Toggle(\"keyboard_fn.all\""))
+        #expect(keyboardSource.contains("Toggle(\"keyboard_fn.enable\""))
+        #expect(!keyboardSource.contains("Button(\"keyboard_fn.save_enable\""))
+        #expect(!keyboardSource.contains("Button(\"keyboard_fn.disable\""))
     }
 
     @Test func applicationEditMenuPreservesStandardTextEditingShortcuts() throws {

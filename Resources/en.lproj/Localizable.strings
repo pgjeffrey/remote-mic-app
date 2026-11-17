@@ -1549,8 +1549,9 @@
 
 "settings.section.keyboard_fn_mapping" = "Keyboard Fn Mapping";
 "keyboard_fn.title" = "Keyboard keys";
-"keyboard_fn.subtitle" = "Add an Fn / Globe key to each external keyboard.";
-"keyboard_fn.disable_all" = "Disable all";
+"keyboard_fn.subtitle" = "Add an Fn / Globe key to each external keyboard that does not have one. Default: Right Ctrl.";
+"keyboard_fn.all" = "All keyboards";
+"keyboard_fn.enable" = "Enable this keyboard";
 "keyboard_fn.devices" = "My keyboards";
 "keyboard_fn.devices.help" = "Multiple keyboards can stay enabled. Selecting one only changes what you edit.";
 "keyboard_fn.refresh" = "Detect keyboards again";
@@ -1572,7 +1573,7 @@
 "keyboard_fn.permission" = "Enable Input Monitoring for SayAll in System Settings, then quit and reopen the app.";
 "keyboard_fn.status.disabled" = "Disabled";
 "keyboard_fn.status.enabled" = "Enabled";
-"keyboard_fn.status.offline" = "Disconnected · Settings saved";
+"keyboard_fn.status.offline" = "Disconnected";
 "keyboard_fn.status.confirmation" = "Confirm this keyboard";
 "keyboard_fn.status.waiting" = "Applying or restoring · Release the key";
 "keyboard_fn.status.unavailable" = "Input Monitoring required";
@@ -1586,7 +1587,7 @@
 "keyboard_fn.error.conflict" = "Another tool changed the mapping. Review it and save again.";
 "keyboard_fn.error.busy" = "Keyboard busy. Finish other key mapping or recording operations and retry.";
 "keyboard_fn.record.prompt" = "Press and release one source key on the selected keyboard within 15 seconds.";
-"keyboard_fn.record.completed" = "Source key recorded. Click Save and enable to apply it.";
+"keyboard_fn.record.completed" = "Source key recorded and saved. The mapping is enabled automatically.";
 "keyboard_fn.identify.prompt" = "Press and release Left Shift on the target keyboard within 15 seconds.";
 "keyboard_fn.identify.completed" = "Keyboard identified.";
 "keyboard_fn.capture.timeout" = "No key was recorded in time. Start again.";
