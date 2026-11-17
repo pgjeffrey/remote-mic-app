@@ -586,6 +586,7 @@ final class BridgeAppModel: NSObject, ObservableObject, XiaomiBluetoothBridgeDel
     let macroFeature: MacroFeatureIntegration
     let membershipFeature: MembershipFeatureIntegration
     let loginItemService: LoginItemService
+    let keyboardFn: KeyboardFnController
 
     @Published private(set) var connectionStatus = LocalizedMessage("bluetooth.status.initializing")
     @Published private(set) var hidStatus = LocalizedMessage("button_mapping.status.disabled")
@@ -612,6 +613,7 @@ final class BridgeAppModel: NSObject, ObservableObject, XiaomiBluetoothBridgeDel
     @Published private(set) var macMicrophoneDevices: [AudioDeviceInfo] = []
     @Published private(set) var macMicrophoneState: MacMicrophoneSessionState = .idle
     @Published private(set) var macMicrophoneShortcutAvailable = true
+    @Published var microphoneMixerEnabled = false
     @Published private(set) var macMicrophoneEnabled = false
     private let macMicrophoneVoiceKeyMonitor = MacMicrophoneVoiceKeyMonitor()
     private var macMicrophoneMonitoredMode: VoiceKeyMode?
@@ -1104,7 +1106,8 @@ final class BridgeAppModel: NSObject, ObservableObject, XiaomiBluetoothBridgeDel
         },
         customApplicationURLResolver: @escaping (String) -> URL? = {
             NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0)
-        }
+        },
+        keyboardFn: KeyboardFnController = KeyboardFnController()
     ) {
         self.settings = settings
         self.privateFeature = privateFeature
@@ -1116,6 +1119,7 @@ final class BridgeAppModel: NSObject, ObservableObject, XiaomiBluetoothBridgeDel
         self.diagnosticLogUploader = diagnosticLogUploader
         self.externalActionSender = externalActionSender
         self.customApplicationURLResolver = customApplicationURLResolver
+        self.keyboardFn = keyboardFn
         super.init()
         if settings.siriRemoteEnabled, settings.siriRemoteNeedsUserAction {
             siriRemoteAudioStatus = "unavailable:authorization_user_action_required"
@@ -1634,6 +1638,7 @@ final class BridgeAppModel: NSObject, ObservableObject, XiaomiBluetoothBridgeDel
     }
 
     func stop() {
+        keyboardFn.stop()
         if hidMonitorRebuildWorkItem != nil {
             AppLogger.shared.write("HID MONITOR REBUILD phase=cancelled reason=app_stop")
         }
@@ -3007,6 +3012,10 @@ final class BridgeAppModel: NSObject, ObservableObject, XiaomiBluetoothBridgeDel
     }
 
     func toggleMacMicrophone(from entry: MacMicrophoneEntry) {
+        guard !microphoneMixerEnabled else {
+            AppLogger.shared.write("MAC MICROPHONE phase=rejected reason=microphone_mixer_active")
+            return
+        }
         if !macMicrophoneSession.isEnabled {
             guard macMicrophoneSelectedDeviceIsReady else {
                 AppLogger.shared.write("MAC MICROPHONE phase=rejected reason=input_unavailable")

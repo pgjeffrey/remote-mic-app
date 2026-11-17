@@ -47,8 +47,14 @@ struct ButtonProfileFileOpeningTests {
             == (fileType == "personalBackup" ? .settings : .buttonProfiles))
         if queuedBeforeMount { requests.enqueue(url: url) }
         var viewDidAppear = false
+        let microphoneMixer = MicrophoneMixerModel(
+            defaults: defaults,
+            outputUID: { "" }, singleMicrophoneActive: { false }, armedChanged: { _ in }
+        )
+        defer { microphoneMixer.shutdown {} }
         let controller = NSHostingController(rootView: SettingsView(
             model: model,
+            microphoneMixer: microphoneMixer,
             buttonProfileImportRequests: requests,
             updateInformation: UpdateInformationStore(userDefaults: defaults),
             initialSection: .connection
@@ -111,8 +117,14 @@ struct ButtonProfileFileOpeningTests {
         let requests = ButtonProfileImportRequestStore()
         let request = requests.enqueue(url: URL(fileURLWithPath: "/Users/test/profile.sayall"))
         var viewDidAppear = false
+        let microphoneMixer = MicrophoneMixerModel(
+            defaults: defaults,
+            outputUID: { "" }, singleMicrophoneActive: { false }, armedChanged: { _ in }
+        )
+        defer { microphoneMixer.shutdown {} }
         let controller = NSHostingController(rootView: RemoteMicRootView(
             model: model,
+            microphoneMixer: microphoneMixer,
             buttonProfileImportRequests: requests,
             updateInformation: UpdateInformationStore(userDefaults: defaults),
             checkForUpdates: {}, refreshUpdateInformation: {},

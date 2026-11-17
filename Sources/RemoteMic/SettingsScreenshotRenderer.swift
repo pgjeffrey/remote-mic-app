@@ -29,8 +29,44 @@ enum SettingsScreenshotRenderer {
         }
     }
 
+    private static func makeKeyboardFixture() -> KeyboardFnController {
+        let hardware = KeyboardScreenshotHardware()
+        let store = KeyboardScreenshotStore()
+        let state = ProcessInfo.processInfo.environment["REMOTE_MIC_SETTINGS_SCREENSHOT_KEYBOARD_STATE"] ?? "multiple"
+        if state != "empty" {
+            let identities = ["desk", "travel", "offline"].map {
+                KeyboardFnIdentity(vendor: 1, product: 2, transport: "Bluetooth", token: $0)
+            }
+            hardware.connected = [
+                KeyboardFnDevice(serviceID: 101, rawID: 1, name: "CHERRY Keyboard", identity: identities[0]),
+                KeyboardFnDevice(serviceID: 102, rawID: 2, name: "CHERRY Keyboard", identity: identities[1]),
+            ]
+            store.value.profiles = identities.enumerated().map { index, identity in
+                KeyboardFnProfile(
+                    identity: identity,
+                    name: ["书桌键盘", "随身键盘", "办公室键盘"][index],
+                    source: index == 1 ? KeyboardFnKey(page: 7, usage: 0xE6) : .rightControl,
+                    enabled: index != 1,
+                    confirmedBoot: "fixture",
+                    confirmedService: UInt64(101 + index)
+                )
+            }
+        }
+        hardware.permissionGranted = state != "permission"
+        let controller = KeyboardFnController(hardware: hardware, store: store, logger: { _ in })
+        controller.start()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.35))
+        controller.refresh()
+        if state == "capture", let row = controller.rows.first {
+            controller.beginRecording(rowID: row.id)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.7))
+        }
+        return controller
+    }
+
     private static let sections: [SettingsSection] = [
         .mapping,
+        .audioMixing,
         .applications,
         .commonPhrases,
         .macros,
@@ -39,6 +75,7 @@ enum SettingsScreenshotRenderer {
         .statistics,
         .transcripts,
         .connection,
+        .keyboard,
         .about,
     ]
 
@@ -272,13 +309,15 @@ enum SettingsScreenshotRenderer {
                 source: .unknown, originalTranscript: "SayAll UI review"
             ))
         }
+        let keyboardFixture = makeKeyboardFixture()
         let model = BridgeAppModel(
             settings: settings,
             membershipFeature: mappingScenario == nil && membershipAccess == nil
                 ? MembershipFeatureIntegration()
                 : MembershipFeatureIntegration(configuration: nil),
             transcriptArchiveStore: transcriptStore,
-            recordingAssetStore: recordingStore
+            recordingAssetStore: recordingStore,
+            keyboardFn: keyboardFixture
         )
         if let rawModel = ProcessInfo.processInfo.environment[
             "REMOTE_MIC_SETTINGS_SCREENSHOT_REMOTE_MODEL"
@@ -372,6 +411,13 @@ enum SettingsScreenshotRenderer {
 
         _ = NSApplication.shared
         AppIconController().apply(settings.appIconIdentifier, source: "screenshot")
+        let microphoneMixer = MicrophoneMixerModel(
+            defaults: defaults,
+            outputUID: { settings.selectedAudioDeviceUID },
+            singleMicrophoneActive: { model.macMicrophoneEnabled },
+            armedChanged: { model.microphoneMixerEnabled = $0 }
+        )
+
         let previousAppearance = NSApp.appearance
         NSApp.appearance = appearance
         defer { NSApp.appearance = previousAppearance }
@@ -386,6 +432,7 @@ enum SettingsScreenshotRenderer {
             let section = sections.first { $0.rawValue == onlySection } ?? onlySection.map { SettingsSection(rawValue: $0) } ?? .mapping
             let controller = NSHostingController(rootView: SettingsView(
                 model: model,
+                microphoneMixer: microphoneMixer,
                 updateInformation: updateInformation,
                 initialSection: section,
                 initialShareSection: section == .statistics && expandsShare ? section : nil,
@@ -427,6 +474,7 @@ enum SettingsScreenshotRenderer {
         for section in sections where onlySection == nil || onlySection == section.rawValue {
             let rootView = SettingsView(
                 model: model,
+                microphoneMixer: microphoneMixer,
                 updateInformation: updateInformation,
                 initialSection: section,
                 initialShareSection: section == .statistics && expandsShare ? section : nil,
@@ -736,5 +784,30 @@ private final class SidebarScreenshotProvider: NSObject {
         let view = NSView()
         view.addSubview(label)
         return view
+    }
+}
+
+private final class KeyboardScreenshotStore: KeyboardFnStoring {
+    var value = KeyboardFnConfiguration()
+    func load() throws -> KeyboardFnConfiguration { value }
+    func save(_ configuration: KeyboardFnConfiguration) throws { value = configuration }
+}
+
+private final class KeyboardScreenshotHardware: KeyboardFnHardware {
+    let boot = "fixture"
+    var permissionGranted = true
+    var onKey: ((UInt64, KeyboardFnKey, Bool) -> Void)?
+    var connected: [KeyboardFnDevice] = []
+    private var values: [UInt64: [HIDUsageMapping]] = [:]
+
+    func start() throws {}
+    func stop() {}
+    func devices() -> [KeyboardFnDevice] { connected }
+    func serviceExists(_ id: UInt64) -> Bool { connected.contains { $0.serviceID == id } }
+    func mappings(_ id: UInt64) throws -> [HIDUsageMapping] { values[id] ?? [] }
+    func setMappings(_ mappings: [HIDUsageMapping], for id: UInt64) throws { values[id] = mappings }
+    func pressedKeys(_ rawID: UInt64, matching: Set<KeyboardFnKey>?) throws -> Set<KeyboardFnKey> { [] }
+    func availableKeys(_ rawID: UInt64) throws -> Set<KeyboardFnKey> {
+        [.rightControl, KeyboardFnKey(page: 7, usage: 0xE6)]
     }
 }

@@ -457,6 +457,37 @@ struct SettingsPageRegressionTests {
         #expect(source.contains("about.version.release_notes_title"))
     }
 
+    @Test func keyboardFnMappingHasItsOwnSidebarRouteBelowConnection() throws {
+        let sections = SettingsPageBehavior.sidebarSections(
+            privateFeatureVisible: false,
+            macroFeatureVisible: false,
+            buttonProfilesVisible: false,
+            membershipVisible: false
+        )
+        let connectionIndex = try #require(sections.firstIndex(of: .connection))
+        #expect(sections[connectionIndex + 1] == .keyboard)
+
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("Sources/RemoteMic/SettingsView.swift"),
+            encoding: .utf8
+        )
+        #expect(source.contains("case .keyboard:"))
+        #expect(source.contains("KeyboardFnSettingsView(controller: model.keyboardFn)"))
+
+        let keyboardSource = try String(
+            contentsOf: root.appendingPathComponent("Sources/RemoteMic/KeyboardFnSettingsView.swift"),
+            encoding: .utf8
+        )
+        #expect(keyboardSource.contains("Toggle(\"keyboard_fn.all\""))
+        #expect(keyboardSource.contains("Toggle(\"keyboard_fn.enable\""))
+        #expect(!keyboardSource.contains("Button(\"keyboard_fn.save_enable\""))
+        #expect(!keyboardSource.contains("Button(\"keyboard_fn.disable\""))
+    }
+
     @Test func applicationEditMenuPreservesStandardTextEditingShortcuts() throws {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -2261,11 +2292,13 @@ struct SettingsPageRegressionTests {
             membershipVisible: true
         ) == [
             .mapping,
+            .audioMixing,
             .applications,
             .macros,
             .buttonProfiles,
             .membership,
             .connection,
+            .keyboard,
             .transcripts,
             .privateFeature,
             .about,
@@ -2400,6 +2433,8 @@ struct SettingsPageRegressionTests {
             ".statistics",
             ".transcripts",
             ".connection",
+            ".keyboard",
+            ".audioMixing",
             ".about",
         ] {
             #expect(sections.contains(section))

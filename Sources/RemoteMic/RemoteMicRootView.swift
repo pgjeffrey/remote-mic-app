@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RemoteMicRootView: View {
     let model: BridgeAppModel
+    private let microphoneMixer: MicrophoneMixerModel
     @ObservedObject private var buttonProfileImportRequests: ButtonProfileImportRequestStore
     /// AppKit 菜单与 ⌘1–⌘9 的导航桥，由 AppDelegate 持有并注入。
     @ObservedObject private var settingsNavigation: SettingsNavigationStore
@@ -17,6 +18,7 @@ struct RemoteMicRootView: View {
 
     init(
         model: BridgeAppModel,
+        microphoneMixer: MicrophoneMixerModel,
         buttonProfileImportRequests: ButtonProfileImportRequestStore = ButtonProfileImportRequestStore(),
         settingsNavigation: SettingsNavigationStore = SettingsNavigationStore(),
         updateInformation: UpdateInformationStore,
@@ -29,6 +31,7 @@ struct RemoteMicRootView: View {
         initialSettingsSection: SettingsSection? = nil
     ) {
         self.model = model
+        self.microphoneMixer = microphoneMixer
         self.buttonProfileImportRequests = buttonProfileImportRequests
         self.settingsNavigation = settingsNavigation
         settings = model.settings
@@ -47,6 +50,7 @@ struct RemoteMicRootView: View {
             if settings.isOnboardingComplete {
                 SettingsView(
                     model: model,
+                    microphoneMixer: microphoneMixer,
                     buttonProfileImportRequests: buttonProfileImportRequests,
                     settingsNavigation: settingsNavigation,
                     updateInformation: updateInformation,

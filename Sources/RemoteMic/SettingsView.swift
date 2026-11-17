@@ -18,11 +18,13 @@ struct SettingsSection: RawRepresentable, Hashable, CaseIterable, Identifiable {
     let rawValue: String
     init(rawValue: String) { self.rawValue = rawValue }
     static let connection = SettingsSection(rawValue: "connection")
+    static let keyboard = SettingsSection(rawValue: "keyboard")
     static let privateFeature = SettingsSection(rawValue: "privateFeature")
     static let macros = SettingsSection(rawValue: "macros")
     static let buttonProfiles = SettingsSection(rawValue: "buttonProfiles")
     static let membership = SettingsSection(rawValue: "membership")
     static let mapping = SettingsSection(rawValue: "mapping")
+    static let audioMixing = SettingsSection(rawValue: "audioMixing")
     /// 「聚焦与翻页」：输入框聚焦与翻页滚动按 App 单独配置，和按键页的按键绑定互不影响。
     static let applications = SettingsSection(rawValue: "applications")
     static let statistics = SettingsSection(rawValue: "statistics")
@@ -30,7 +32,7 @@ struct SettingsSection: RawRepresentable, Hashable, CaseIterable, Identifiable {
     static let commonPhrases = SettingsSection(rawValue: "commonPhrases")
     static let permissions = SettingsSection(rawValue: "permissions")
     static let about = SettingsSection(rawValue: "about")
-    static let allCases: [SettingsSection] = [.connection, .privateFeature, .macros, .buttonProfiles, .membership, .mapping, .applications, .statistics, .transcripts, .commonPhrases, .permissions, .about]
+    static let allCases: [SettingsSection] = [.connection, .keyboard, .privateFeature, .macros, .buttonProfiles, .membership, .mapping, .audioMixing, .applications, .statistics, .transcripts, .commonPhrases, .permissions, .about]
     static func supplemental(_ id: String) -> SettingsSection { SettingsSection(rawValue: "supplemental:" + id) }
     var supplementalID: String? { rawValue.hasPrefix("supplemental:") ? String(rawValue.dropFirst(13)) : nil }
     var id: String { rawValue }
@@ -38,11 +40,13 @@ struct SettingsSection: RawRepresentable, Hashable, CaseIterable, Identifiable {
     var titleKey: String {
         switch self {
         case .connection: return "settings.section.connection"
+        case .keyboard: return "settings.section.keyboard_fn_mapping"
         case .privateFeature: return ""
         case .macros: return ""
         case .buttonProfiles: return ""
         case .membership: return ""
         case .mapping: return "settings.section.buttons"
+        case .audioMixing: return "mixer.title"
         case .applications: return "settings.section.applications"
         case .statistics: return "settings.section.statistics"
         case .commonPhrases: return "common_phrases.title"
@@ -60,11 +64,13 @@ struct SettingsSection: RawRepresentable, Hashable, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .connection: return "link"
+        case .keyboard: return "keyboard"
         case .privateFeature: return "sparkles"
         case .macros: return "command.square"
         case .buttonProfiles: return "rectangle.3.group"
         case .membership: return "crown.fill"
         case .mapping: return "keyboard"
+        case .audioMixing: return "waveform"
         case .applications: return "square.grid.2x2"
         case .statistics: return "person.crop.circle"
         case .commonPhrases: return "text.quote"
@@ -201,11 +207,13 @@ enum SettingsPageBehavior {
 
     static let sidebarSectionOrder: [SettingsSection] = [
         .mapping,
+        .audioMixing,
         .applications,
         .macros,
         .buttonProfiles,
         .membership,
         .connection,
+        .keyboard,
         .transcripts,
         .privateFeature,
         .about,
@@ -236,8 +244,8 @@ enum SettingsPageBehavior {
         membershipVisible: Bool,
         supplementalPageIDs: [String] = []
     ) -> [SettingsSection] {
-        // 补充页插在固定入口之后；「按键 / 聚焦与翻页」属于最前面的固定入口。
-        let sections = Array(sidebarSectionOrder.prefix(5)) + supplementalPageIDs.map(SettingsSection.supplemental) + Array(sidebarSectionOrder.dropFirst(5))
+        // 补充页插在固定入口之后；「按键 / 音频混合 / 聚焦与翻页」属于最前面的固定入口。
+        let sections = Array(sidebarSectionOrder.prefix(6)) + supplementalPageIDs.map(SettingsSection.supplemental) + Array(sidebarSectionOrder.dropFirst(6))
         return sections.filter {
             switch $0 {
             case .privateFeature: privateFeatureVisible
@@ -600,6 +608,7 @@ struct SettingsView: View {
     private static let chromecastVoiceModePickerMaxWidth: CGFloat = 320
 
     @ObservedObject var model: BridgeAppModel
+    private let microphoneMixer: MicrophoneMixerModel
     @ObservedObject var settings: AppSettings
     @ObservedObject private var privateFeature: PrivateFeatureIntegration
     @State private var preservesMappingContextOnNavigation = false
@@ -691,6 +700,7 @@ struct SettingsView: View {
 
     init(
         model: BridgeAppModel,
+        microphoneMixer: MicrophoneMixerModel,
         buttonProfileImportRequests: ButtonProfileImportRequestStore = ButtonProfileImportRequestStore(),
         settingsNavigation: SettingsNavigationStore = SettingsNavigationStore(),
         updateInformation: UpdateInformationStore,
@@ -717,6 +727,7 @@ struct SettingsView: View {
         minimumContentSize: CGSize = CGSize(width: 980, height: 732)
     ) {
         self.model = model
+        self.microphoneMixer = microphoneMixer
         self.buttonProfileImportRequests = buttonProfileImportRequests
         self.settingsNavigation = settingsNavigation
         settings = model.settings
@@ -1106,6 +1117,8 @@ struct SettingsView: View {
         switch SettingsPageBehavior.visibleSection(for: selectedSection) {
         case .connection:
             connectionPage
+        case .keyboard:
+            KeyboardFnSettingsView(controller: model.keyboardFn)
         case .privateFeature:
             if privateFeature.isFeatureVisible {
                 privateFeature.settingsView()
@@ -1199,6 +1212,11 @@ struct SettingsView: View {
                 // Submit only after this page has mounted its import observer.
                 consumePendingButtonProfileImportIfNeeded()
             }
+        case .audioMixing:
+            MicrophoneMixerView(model: microphoneMixer)
+                .onAppear {
+                    AppLogger.shared.write("MICROPHONE MIXER PAGE phase=observed result=visible source=sidebar")
+                }
         case .applications:
             applicationsPage
         case .membership:
@@ -1895,6 +1913,7 @@ struct SettingsView: View {
                             .foregroundStyle(model.macMicrophoneEnabled ? Color.red : Color.primary)
                     }
                     .compatibilityButtonStyle(.standard)
+                    .disabled(model.microphoneMixerEnabled)
                     .accessibilityHint(Text("audio.mac_microphone.help"))
                     .onHover { isHoveringMacMicrophoneButton = $0 }
                     .overlay(alignment: .bottom) {

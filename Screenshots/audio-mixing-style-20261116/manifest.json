@@ -1,0 +1,47 @@
+{
+  "batch": "audio-mixing-style-20261116",
+  "date": "2026-11-16",
+  "purpose": "Reflections-aligned audio mixing surfaces and two header switches",
+  "source_commit": "2c281e18e7bca289004f89599f1109fb6fadd51d",
+  "app_version": "2.0.4",
+  "app_build": "190",
+  "window_frame_size": {
+    "width": 1067,
+    "height": 760
+  },
+  "storage": "Original PNGs retained in ~/Downloads/SayAll-audio-mixing-style-20261116; public evidence URL pending",
+  "images": [
+    {
+      "file": "zh-Hans-light.png",
+      "format": "PNG",
+      "width": 2358,
+      "height": 1744,
+      "sha256": "39797852ee49c1e3230180de5e1875775423762c74c581775b69d11b2b9714fc",
+      "external_url": null
+    },
+    {
+      "file": "zh-Hans-dark.png",
+      "format": "PNG",
+      "width": 2358,
+      "height": 1744,
+      "sha256": "45bee291cf62772b166d68e41151e12c5008162ab7b5a893db46220635be6221",
+      "external_url": null
+    },
+    {
+      "file": "en-light.png",
+      "format": "PNG",
+      "width": 2358,
+      "height": 1744,
+      "sha256": "467b96226e555ac48f029927c0f18352dfbce09320c1a3113eda0cf26fcd3668",
+      "external_url": null
+    },
+    {
+      "file": "en-dark.png",
+      "format": "PNG",
+      "width": 2358,
+      "height": 1744,
+      "sha256": "6c210f65aa22ab60d28a74f6880be0899227d2200ac554f67ed0288793c13c2b",
+      "external_url": null
+    }
+  ]
+}
